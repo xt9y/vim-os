@@ -12,15 +12,15 @@ keyboard — vim-style:
 
 PHASE 0 — BOOT FOUNDATION
 
-[ ] 0.1 — Kernel stack
+[X] 0.1 — Kernel stack
     entry() uses the bootloader's stack. Set up your own 16 KiB BSS stack
     and switch RSP to it at the top of entry().
 
-[ ] 0.2 — Serial output (COM1)
+[X] 0.2 — Serial output (COM1)
     Write putchar/printf over port 0x3F8. Critical for debugging everything
     below. Keep this and use it constantly.
 
-[ ] 0.3 — GDT
+[X] 0.3 — GDT
     Kernel code/data segments + TSS. Needed for interrupts and later for
     user-mode apps.
 

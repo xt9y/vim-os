@@ -4,12 +4,19 @@
 CC := x86_64-elf-gcc
 LD := x86_64-elf-ld
 
+SRC_DIRS := src src/kernel
+
+CFILES    := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
+OBJ       := $(patsubst %.c,obj/%.c.o,$(CFILES))
+INCLUDES  := $(addprefix -I,$(SRC_DIRS))
+
 CFLAGS  := -O2 -std=gnu11 -ffreestanding -fno-stack-protector -fno-PIC \
-            -fno-lto -m64 -mno-red-zone -mno-sse -mno-sse2 -mcmodel=kernel \
-            -Wall -Wextra -Isrc
+           -fno-lto -m64 -mno-red-zone -mno-sse -mno-sse2 -mcmodel=kernel \
+           -Wall -Wextra $(INCLUDES)
 LDFLAGS := -m elf_x86_64 -nostdlib -static -z max-page-size=0x1000 -T linker.lds
 
-OBJ := obj/src/main.c.o
+OVMF := $(shell find /opt/homebrew /usr/local -name "edk2-x86_64-code.fd" 2>/dev/null | head -1)
+SERIAL := stdio
 
 .PHONY: all iso run clean
 
@@ -19,11 +26,9 @@ bin/os: $(OBJ) linker.lds GNUmakefile
 	mkdir -p bin
 	$(LD) $(LDFLAGS) $(OBJ) -o $@
 
-obj/src/main.c.o: src/main.c GNUmakefile
-	mkdir -p obj/src
+obj/%.c.o: %.c GNUmakefile
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
-
-OVMF := $(shell find /opt/homebrew /usr/local -name "edk2-x86_64-code.fd" 2>/dev/null | head -1)
 
 iso: bin/os
 	curl -Ls https://github.com/limine-bootloader/limine/releases/latest/download/limine-binary.tar.gz | tar -xz -C bin
@@ -39,7 +44,8 @@ iso: bin/os
 
 run: iso
 	qemu-system-x86_64 -cdrom bin/image.iso -m 128M \
+	  -serial $(SERIAL) \
 	  -drive if=pflash,format=raw,readonly=on,file=$(OVMF)
 
 clean:
-	rm -rf bin obj
+	rm -rf bin obj serial.log
