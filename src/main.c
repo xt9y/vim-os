@@ -22,6 +22,8 @@ static char kernel_stack[16384] __attribute__((aligned(16)));
 #define hang for (;;) __asm__("hlt")
 
 #include "kernel/serial.h"
+#include "kernel/idt.h"
+#include "kernel/pit.h"
 #include "gdt.h"
 
 void entry(void) 
@@ -31,6 +33,17 @@ void entry(void)
 
     serial_init(); serial_printf("\n\n");
     gdt_init();
+    idt_init();
+
+    // Disable local APIC (bit 11 of IA32_APIC_BASE MSR 0x1B)
+    // ... so legacy PIC interrupts reach the CPU directly
+    uint32_t lo, hi;
+    __asm__ volatile("rdmsr" : "=a"(lo), "=d"(hi) : "c"(0x1Bu)); lo &= ~(1 << 11);
+    __asm__ volatile("wrmsr" :: "a"(lo), "d"(hi), "c"(0x1Bu));
+
+    pit_init();
+
+    __asm__ volatile("sti");
 
     serial_printf("LOG: Kernel booted. Stack at %p\n", (void *)stack_top);
 
@@ -47,8 +60,12 @@ void entry(void)
             (unsigned)fb->width, (unsigned)fb->height, 
             (unsigned)fb->pitch, (unsigned)fb->bpp);
 
-    volatile uint32_t *pixels = fb->address;
+    serial_printf("LOG: Timer test: waiting 1s...\n");
+    uint64_t t0 = pit_get_ticks(); timer_sleep(1000); uint64_t dt = pit_get_ticks() - t0;
+    serial_printf("LOG: Timer test: %u ticks elapsed (expect ~100)\n", (unsigned)dt);
 
+    volatile uint32_t *pixels = fb->address;
+    
     for (size_t y = 0; y < fb->height; y++)
     for (size_t x = 0; x < fb->width; x++)
         pixels[y * (fb->pitch / 4) + x] = 0x2277AA;

@@ -11,8 +11,8 @@ OBJ       := $(patsubst %.c,obj/%.c.o,$(CFILES))
 INCLUDES  := $(addprefix -I,$(SRC_DIRS))
 
 CFLAGS  := -O2 -std=gnu11 -ffreestanding -fno-stack-protector -fno-PIC \
-           -fno-lto -m64 -mno-red-zone -mno-sse -mno-sse2 -mcmodel=kernel \
-           -Wall -Wextra $(INCLUDES)
+           -fno-lto -m64 -mno-red-zone -mno-sse -mno-sse2 -mgeneral-regs-only \
+           -mcmodel=kernel -Wall -Wextra $(INCLUDES)
 LDFLAGS := -m elf_x86_64 -nostdlib -static -z max-page-size=0x1000 -T linker.lds
 
 OVMF := $(shell find /opt/homebrew /usr/local -name "edk2-x86_64-code.fd" 2>/dev/null | head -1)

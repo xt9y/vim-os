@@ -27,17 +27,19 @@ PHASE 0 — BOOT FOUNDATION
 
 PHASE 1 — INTERRUPTS & TIMER
 
-[ ] 1.1 — IDT
-    256 entries. Install handlers for:
-      IRQ0  → PIT timer
-      IRQ1  → PS/2 keyboard
-      Exceptions (0-31) → print error + halt
+[X] 1.1 — IDT
+     256 entries. Install handlers for:
+       IRQ0  → PIT timer
+       IRQ1  → PS/2 keyboard
+       Exceptions (0-31) → print error + halt
 
-[ ] 1.2 — PIC (8259A)
-    Remap IRQs 0-15 to INT 0x20-0x2F. Mask everything except IRQ0, IRQ1.
+[X] 1.2 — PIC (8259A)
+     Remap IRQs 0-15 to INT 0x20-0x2F. Mask everything except IRQ0, IRQ1.
+     Note: Must disable local APIC (IA32_APIC_BASE MSR bit 11) under UEFI/OVMF,
+     otherwise the PIC's output gets swallowed by the APIC.
 
-[ ] 1.3 — PIT timer
-    Program channel 0 at ~100 Hz. Provide timer_sleep(ms) spin-loop.
+[X] 1.3 — PIT timer
+     Program channel 0 at ~100 Hz. Provide timer_sleep(ms) spin-loop.
 
 
 PHASE 2 — MEMORY MANAGEMENT
