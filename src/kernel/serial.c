@@ -2,25 +2,30 @@
 
 #define COM1 0x3F8
 
-static uint8_t inb(uint16_t port) {
+static uint8_t inb(uint16_t port) 
+{
     uint8_t val;
     __asm__ volatile("inb %1, %0" : "=a"(val) : "Nd"(port));
     return val;
 }
 
-static void outb(uint16_t port, uint8_t val) {
+static void outb(uint16_t port, uint8_t val) 
+{
     __asm__ volatile("outb %0, %1" : : "a"(val), "Nd"(port));
 }
 
-static int serial_received(void) {
+static int serial_received(void) 
+{
     return (inb(COM1 + 5) & 1) != 0;
 }
 
-static int serial_is_transmit_empty(void) {
+static int serial_is_transmit_empty(void) 
+{
     return (inb(COM1 + 5) & 0x20) != 0;
 }
 
-void serial_init(void) {
+void serial_init(void) 
+{
     outb(COM1 + 1, 0x00);
     outb(COM1 + 3, 0x80);
     outb(COM1 + 0, 0x01);
@@ -34,19 +39,20 @@ void serial_init(void) {
     outb(COM1 + 4, 0x0F);
 }
 
-void serial_putchar(char c) {
+void serial_putchar(char c) 
+{
     while (!serial_is_transmit_empty());
     outb(COM1, (uint8_t)c);
-    if (c == '\n')
-        serial_putchar('\r');
+    if (c == '\n') serial_putchar('\r');
 }
 
-void serial_write(const char *str) {
-    for (; *str; str++)
-        serial_putchar(*str);
+void serial_write(const char *str) 
+{
+    for (; *str; str++) serial_putchar(*str);
 }
 
-void serial_printf(const char *fmt, ...) {
+void serial_printf(const char *fmt, ...) 
+{
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     for (; *fmt; fmt++) {
@@ -54,6 +60,7 @@ void serial_printf(const char *fmt, ...) {
             serial_putchar(*fmt);
             continue;
         }
+
         fmt++;
         switch (*fmt) {
             case 's': {

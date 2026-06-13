@@ -40,17 +40,14 @@ struct tss_struct {
 
 static struct tss_struct tss;
 
-// --- GDT array: 5 entries ---
-// [0] null, [1] kernel code, [2] kernel data,
-// [3] TSS low, [4] TSS high
+// [0] null, [1] kernel code, [2] kernel data, [3] TSS low, [4] TSS high
 static struct {
     uint64_t entries[5];
 } __attribute__((aligned(16))) gdt;
 
-void gdt_init(void) {
-    // 1. Clear the TSS
-    for (unsigned i = 0; i < sizeof(tss); i++)
-        ((volatile uint8_t *)&tss)[i] = 0;
+void gdt_init(void) 
+{
+    for (unsigned i = 0; i < sizeof(tss); i++) ((volatile uint8_t *)&tss)[i] = 0;
 
     // 2. Fill GDT entries
     // Null descriptor
