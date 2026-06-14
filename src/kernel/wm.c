@@ -48,7 +48,7 @@ static void free_node(int i)
 
 static int find_free_slot(void) 
 {
-    for (int i = 0; i < WM_MAX; i++)
+    for (int i = 0; i < WM_MAX; i++) 
         if (!window_used[i]) return i;
     return -1;
 }
@@ -60,8 +60,8 @@ void wm_init(uint32_t w, uint32_t h)
     root = NODE_NULL;
     win_count = 0;
     focused_slot = 0;
-    for (int i = 0; i < WM_MAX; i++) window_used[i] = 0;
-    wm_new("root");
+    for (int i = 0; i < WM_MAX; i++) 
+        window_used[i] = 0;
 }
 
 int wm_new(const char *title) 

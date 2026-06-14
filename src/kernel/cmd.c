@@ -10,7 +10,7 @@
 static char buf[CMD_BUF];
 static int pos = 0;
 
-static void render(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const char *buf);
+static void debug_render(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const char *buf);
 
 static int str_eq(const char *a, const char *b)
 {
@@ -74,6 +74,6 @@ void cmd_loop(void)
 
         uint32_t fx, fy, fw, fh;
         wm_focused_rect(&fx, &fy, &fw, &fh);
-        wm_render(); render(fx, fy, fw, fh, buf);
+        wm_render(); debug_render(fx, fy, fw, fh, buf);
     }
 }

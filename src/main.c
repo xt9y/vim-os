@@ -85,7 +85,7 @@ void entry(void)
 
     fb = fb_request.response->framebuffers[0];
     gfx_init((void *)fb->address, fb->width, fb->height, fb->pitch);
-    wm_init(fb->width, fb->height);
+    wm_init(fb->width, fb->height); wm_new("root"); wm_new("root"); wm_new("root");
     
     cmd_loop();
 }
