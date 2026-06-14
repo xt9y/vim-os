@@ -44,22 +44,22 @@ PHASE 1 — INTERRUPTS & TIMER
 
 PHASE 2 — MEMORY MANAGEMENT
 
-[ ] 2.1 — Physical Memory Manager
+[X] 2.1 — Physical Memory Manager
     Use Limine memmap request. Bitmap allocator tracking 4 KiB frames.
     pmm_alloc() / pmm_free().
 
-[ ] 2.2 — Paging (4-level)
+[X] 2.2 — Paging (4-level)
     PML4 → PDP → PD → PT. Kernel at 0xffffffff80000000 (higher half).
     vmm_map_page() for mapping arbitrary physical pages.
 
-[ ] 2.3 — Heap allocator
+[X] 2.3 — Heap allocator
     Start with a bump allocator, then free-list. Provide malloc()/free()
     for dynamic data structures.
 
 
 PHASE 3 — KEYBOARD
 
-[ ] 3.1 — PS/2 Keyboard driver
+[X] 3.1 — PS/2 Keyboard driver
     Read scancodes from port 0x60 on IRQ1.
     Convert scancode set 1 → ASCII.
     Track Shift, Ctrl, Alt, Caps Lock.
