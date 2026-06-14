@@ -3,11 +3,10 @@
 Far Goal:
 A minimal graphical OS booting into a window manager controlled entirely via
 keyboard — vim-style:
-  :q         → close focused app (or shutdown if no app open)
-  /pattern   → search/focus app by name
-  :!cmd      → run shell command
-  j/k        → cycle windows
-  Ctrl+N     → new terminal window
+  :q         -> close focused app (or shutdown if no app open)
+  /pattern   -> search/focus app by name
+  j/k        -> cycle windows
+  :n         -> new terminal window
   No mouse. Everything is keyboard-driven.
 
 PHASE 0 — BOOT FOUNDATION
@@ -69,9 +68,10 @@ PHASE 3 — KEYBOARD
 
 PHASE 4 — GRAPHICS LAYER
 
-[ ] 4.1 — Font & primitives
-    Embed a monospace 8×16 bitmap font.
-    Functions: draw_char(), draw_rect(), draw_str() on the framebuffer.
+[X] 4.1 — Font & primitives
+    Embed a monospace 8×16 bitmap font (font8x16.h, auto-generated).
+    Functions: gfx_clear(), gfx_rect(), gfx_char(), gfx_str() on framebuffer.
+    Integrated into main.c — displays "Hello from opencode OS!" on boot.
 
 [ ] 4.2 — Double buffering (optional)
     Backbuffer + memcpy to hardware framebuffer on vsync. Prevents tearing.
@@ -89,25 +89,22 @@ PHASE 5 — SHELL
 
 PHASE 6 — WINDOW MANAGER
 
-[ ] 6.1 — Window data model
-    struct window { id, title[64], x, y, w, h, focused, backbuffer, *next };
-    Linked list of windows.
+[X] 6.1 — Tiling window manager
+    Fixed-size array (WM_MAX=8) of windows, windows[0] = focused.
+    Recursive alternating-split layout: V[0 | H[1 | V[2 | H[3 | ...]]]].
+    1px gap between windows.
 
-[ ] 6.2 — Compositor
-    Render windows back-to-front (painter's algorithm).
-    Draw title bar with title text, focused window has distinct color.
+[X] 6.2 — Compositor
+    Clear screen, fill each window rect with its theme color via gfx_rect.
+    No title bars or chrome. 
 
-[ ] 6.3 — Focus management
-    j/k cycle windows. :q closes focused window. No windows → shutdown.
+[X] 6.3 — Focus management
+    j/k cycle focus by rotating the array.
+    :q + Enter closes focused window; if only one remains, shut down.
 
-[ ] 6.4 — Vim command bar
-    Status line at bottom of screen.
-    :  → command mode (type, Enter executes, Escape cancels)
-    /  → search mode (type, Enter focuses matching window)
-    Commands: :q (close/quit), :!cmd (shell), :help (keybindings)
+[X] 6.4 — Window creation (:n)
+    Spawn new windows bound to a C content function.
 
-[ ] 6.5 — First app: Terminal
-    Wrap the Phase 5 shell into a window. Ctrl+N spawns a new one.
-    Each app is a C function that draws into its window's backbuffer and
-    receives keyboard events.
+[X] 6.5 — Vim command bar (optional)
+    :  → command mode, / → search mode, Escape to cancel.
 
