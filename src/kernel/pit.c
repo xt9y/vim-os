@@ -41,15 +41,6 @@ void irq_timer(struct interrupt_frame *f)
 }
 
 __attribute__((interrupt))
-void irq_keyboard(struct interrupt_frame *f) 
-{
-    (void)f;
-    uint8_t scancode = inb(0x60);
-    (void)scancode;
-    pic_eoi(1);
-}
-
-__attribute__((interrupt))
 void irq_slave(struct interrupt_frame *f) 
 {
     (void)f;

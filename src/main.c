@@ -14,6 +14,18 @@ static volatile struct limine_framebuffer_request fb_request = {
     .revision = 0
 };
 
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST,
+    .revision = 0
+};
+
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST,
+    .revision = 0
+};
+
 __attribute__((used, section(".limine_requests_end")))
 static volatile LIMINE_REQUESTS_END_MARKER;
 
@@ -24,6 +36,10 @@ static char kernel_stack[16384] __attribute__((aligned(16)));
 #include "kernel/serial.h"
 #include "kernel/idt.h"
 #include "kernel/pit.h"
+#include "kernel/pmm.h"
+#include "kernel/vmm.h"
+#include "kernel/heap.h"
+#include "kernel/kb.h"
 #include "gdt.h"
 
 void entry(void) 
@@ -56,13 +72,15 @@ void entry(void)
     }
 
     struct limine_framebuffer *fb = fb_request.response->framebuffers[0];
-    serial_printf("LOG: Framebuffer: %ux%u, pitch=%u, bpp=%u\n", 
-            (unsigned)fb->width, (unsigned)fb->height, 
-            (unsigned)fb->pitch, (unsigned)fb->bpp);
-
-    serial_printf("LOG: Timer test: waiting 1s...\n");
-    uint64_t t0 = pit_get_ticks(); timer_sleep(1000); uint64_t dt = pit_get_ticks() - t0;
-    serial_printf("LOG: Timer test: %u ticks elapsed (expect ~100)\n", (unsigned)dt);
+    
+    pmm_init(memmap_request.response, hhdm_request.response->offset);
+    vmm_init(hhdm_request.response->offset);
+    
+    heap_init();
+    kb_init();
+    
+    serial_printf("LOG: Keyboard driver ready (press keys in QEMU window)\n");
+    serial_printf("LOG:   kb_getc() -> %d (should be -1, empty ring)\n", kb_getc());
 
     volatile uint32_t *pixels = fb->address;
     
