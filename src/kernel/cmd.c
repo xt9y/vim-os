@@ -74,7 +74,6 @@ void cmd_loop(void)
 
         uint32_t fx, fy, fw, fh;
         wm_focused_rect(&fx, &fy, &fw, &fh);
-        wm_render();
-        render(fx, fy, fw, fh, buf);
+        wm_render(); render(fx, fy, fw, fh, buf);
     }
 }

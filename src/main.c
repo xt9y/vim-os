@@ -47,7 +47,7 @@ static char kernel_stack[16384] __attribute__((aligned(16)));
 
 static struct limine_framebuffer *fb;
 
-void render(uint32_t rx, uint32_t ry, uint32_t rw, uint32_t rh, const char *buf) 
+void debug_render(uint32_t rx, uint32_t ry, uint32_t rw, uint32_t rh, const char *buf) 
 {
     gfx_str(rx + 15, fb->height-21, buf, 0x00EEEEEE, wm_focused_win().bg);
     timer_sleep(10);
