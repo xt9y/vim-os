@@ -79,11 +79,11 @@ PHASE 4 — GRAPHICS LAYER
 
 PHASE 5 — SHELL
 
-[ ] 5.1 — Terminal widget
+[X] 5.1 — Terminal widget
     Scrollable text region on framebuffer. Cursor, newline, backspace,
     keyboard echo. Input line buffer (editable).
 
-[ ] 5.2 — Command parser & builtins
+[X] 5.2 — Command parser & builtins
     Parse a command string. Built-ins: help, echo, clear, reboot, ps.
 
 

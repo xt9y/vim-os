@@ -43,15 +43,10 @@ static char kernel_stack[16384] __attribute__((aligned(16)));
 #include "kernel/cmd.h"
 #include "kernel/gfx.h"
 #include "kernel/wm.h"
+#include "kernel/fs.h"
 #include "gdt.h"
 
 static struct limine_framebuffer *fb;
-
-void debug_render(uint32_t rx, uint32_t ry, uint32_t rw, uint32_t rh, const char *buf) 
-{
-    gfx_str(rx + 15, fb->height-21, buf, 0x00EEEEEE, wm_focused_win().bg);
-    timer_sleep(10);
-} 
 
 void entry(void) 
 {
@@ -81,11 +76,13 @@ void entry(void)
     pmm_init(memmap_request.response, hhdm_request.response->offset);
     vmm_init(hhdm_request.response->offset);
     heap_init();
+    fs_init();
     kb_init();
 
     fb = fb_request.response->framebuffers[0];
+    serial_printf("LOG: Framebuffer: %ux%u %u bpp\n", (unsigned)fb->width, (unsigned)fb->height, (unsigned)fb->bpp);
     gfx_init((void *)fb->address, fb->width, fb->height, fb->pitch);
-    wm_init(fb->width, fb->height); wm_new("root"); wm_new("root"); wm_new("root");
+    wm_init(fb->width, fb->height); wm_new("window"); 
     
     cmd_loop();
 }

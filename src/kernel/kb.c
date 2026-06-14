@@ -8,12 +8,11 @@
 #define PS2_STAT  0x64
 #define RING_SZ   256
 
-static volatile unsigned char ring[RING_SZ];
+static volatile int ring[RING_SZ];
 static volatile int head, tail;
 static int shift, ctrl, alt, caps;
 static int ext;
 
-// scancode set 1: make code 0x01-0x58 -> ASCII
 static const unsigned char normal[128] = {
     0,   0x1B, '1', '2', '3', '4', '5', '6',
     '7', '8', '9', '0', '-', '=', '\b', '\t',
@@ -44,7 +43,7 @@ static const unsigned char shifted[128] = {
     0
 };
 
-static void ring_put(unsigned char c)
+static void ring_put(int c)
 {
     int next = (head + 1) % RING_SZ;
     if (next != tail) {
@@ -56,7 +55,7 @@ static void ring_put(unsigned char c)
 int kb_getc(void)
 {
     if (head == tail) return -1;
-    unsigned char c = ring[tail];
+    int c = ring[tail];
     tail = (tail + 1) % RING_SZ;
     return c;
 }
@@ -89,10 +88,18 @@ void irq_keyboard(struct interrupt_frame *f)
     if (code == 0x3A && make) { caps = !caps; goto done; }
 
     if (make && code < 128) {
-        unsigned char c = shift ? shifted[code] : normal[code];
-        if (c >= 'a' && c <= 'z' && caps) c -= 0x20;
-        if (c >= 'A' && c <= 'Z' && caps && shift) c += 0x20;
-        if (c) ring_put(c);
+        if (code == 0x1C) {
+            ring_put('\n');
+        } else {
+            int mod = 0;
+            if (ctrl) mod |= KB_CTRL;
+            if (alt)  mod |= KB_ALT;
+
+            unsigned char c = shift ? shifted[code] : normal[code];
+            if (c >= 'a' && c <= 'z' && caps) c -= 0x20;
+            if (c >= 'A' && c <= 'Z' && caps && shift) c += 0x20;
+            if (c) ring_put(c | mod);
+        }
     }
 
 done:

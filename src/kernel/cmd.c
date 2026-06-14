@@ -1,79 +1,111 @@
 #include "cmd.h"
 #include "kb.h"
 #include "serial.h"
-#include "io.h"
+#include "shell.h"
+#include "term.h"
 #include "wm.h"
-#include <stdint.h>
-
-#define CMD_BUF 256
-
-static char buf[CMD_BUF];
-static int pos = 0;
-
-static void debug_render(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const char *buf);
-
-static int str_eq(const char *a, const char *b)
-{
-    while (*a && *b && *a == *b) { a++; b++; }
-    return *a == *b;
-}
-
-static void process()
-{
-    if (pos == 0) return;
-    serial_printf("\n");
-
-    if (buf[0] != ':') return;
-
-    if (str_eq(buf, ":q") || str_eq(buf, ":quit")) {
-        if (wm_count() > 1) {
-            serial_printf("LOG: HOTKEY: WINDOW: closing window\n");
-            wm_close_focused();
-        } else {
-            serial_printf("LOG: HOTKEY: Shutting down...\n");
-            outw(0x604, 0x2000); outw(0xB004, 0x2000);
-            __asm__ volatile("cli; hlt");
-            for (;;);
-        }
-    }
-
-    else if (str_eq(buf, ":n") || str_eq(buf, ":new")) {
-        int ret = wm_new("root");
-        if (ret < 0) serial_printf("LOG: HOTKEY: WINDOW: max windows\n");
-        else         serial_printf("LOG: HOTKEY: WINDOW: new window\n");
-    }
-
-    else serial_printf("LOG: HOTKEY: Unknown: %s\n", buf);
-}
+#include "string.h"
+#include "io.h"
 
 void cmd_loop(void)
 {
+    int cmdline_active = 0;
+    char cmdline[256];
+    int cmdline_len = 0;
+
     for (;;) {
         int c = kb_getc();
         if (c < 0) { __asm__("pause"); continue; }
 
-        if (pos == 0) {
-            if (c == 'j') { wm_focus_next(); }
-            else if (c == 'k') { wm_focus_prev(); }
-            else if (c == ':') { serial_printf(":"); buf[pos++] = ':'; }
-        } else {
+        if (cmdline_active) {
             if (c == '\n') {
-                serial_printf("\n");
-                buf[pos] = '\0';
-                process();
-                pos = 0; buf[0] = '\0';
-            } else if ((c == '\b' || c == 0x7F) && pos > 1) {
-                pos--;
-            } else if (c == '\b' || c == 0x7F) {
-                pos = 0; buf[0] = '\0';
-            } else if (c >= ' ' && pos < CMD_BUF - 1) {
-                serial_printf("%c", c);
-                buf[pos++] = c;
+                cmdline[cmdline_len] = '\0';
+                const char *cmd = cmdline;
+                while (*cmd == ':') cmd++;
+                if (strcmp(cmd, "n") == 0) {
+                    wm_new("term");
+                } 
+
+                else if (strcmp(cmd, "q") == 0) {
+                    if (wm_count() > 1) wm_close_focused();
+                } 
+
+                else if (strcmp(cmd, "q!") == 0) {
+                    outw(0x604, 0x2000); outw(0xB004, 0x2000);
+                    __asm__ volatile("cli; hlt");
+                    for (;;);
+                }
+
+                cmdline_active = 0;
+                cmdline_len = 0;
+            } 
+
+            else if (c == 0x1B) {
+                cmdline_active = 0;
+                cmdline_len = 0;
+            } 
+
+            else if (c == '\b' || c == 0x7F) {
+                if (cmdline_len > 1) cmdline_len--;
+                else { cmdline_active = 0; cmdline_len = 0; }
+            } 
+
+            else if ((c & 0xFF) >= ' ' && !(c & (KB_CTRL | KB_ALT))) {
+                if (cmdline_len < 255) {
+                    cmdline[cmdline_len++] = c;
+                    cmdline[cmdline_len] = '\0';
+                }
+            }
+        } else {
+            int ch = c & 0xFF;
+            int mod = c & ~0xFF;
+
+            if (c == ('j' | KB_CTRL)) {
+                wm_focus_next();
+            } 
+
+            else if (c == ('k' | KB_CTRL)) {
+                wm_focus_prev();
+            } 
+
+            else if (c == ':') {
+                cmdline_active = 1;
+                cmdline_len = 1;
+                cmdline[0] = ':';
+                cmdline[1] = '\0';
+            } 
+
+            else if (c == '\n') {
+                int slot = wm_focused_slot();
+                struct terminal *t = wm_get_app_data(slot);
+                if (t) {
+                    shell_exec(t->input, t);
+                    t->input_len = 0;
+                    t->input[0] = '\0';
+                }
+            } 
+
+            else if (c == '\b' || c == 0x7F) {
+                int slot = wm_focused_slot();
+                struct terminal *t = wm_get_app_data(slot);
+                if (t && t->input_len > 0) {
+                    t->input_len--;
+                    t->input[t->input_len] = '\0';
+                }
+            } 
+
+            else if (ch >= ' ' && !(mod & (KB_CTRL | KB_ALT))) {
+                int slot = wm_focused_slot();
+                struct terminal *t = wm_get_app_data(slot);
+                if (t && t->input_len < TERM_INPUT_MAX - 1) {
+                    t->input[t->input_len++] = ch;
+                    t->input[t->input_len] = '\0';
+                }
             }
         }
 
-        uint32_t fx, fy, fw, fh;
-        wm_focused_rect(&fx, &fy, &fw, &fh);
-        wm_render(); debug_render(fx, fy, fw, fh, buf);
+        if (cmdline_active) wm_set_cmdline(cmdline, cmdline_len, 1);
+        else wm_set_cmdline("", 0, 0);
+        wm_render();
     }
 }

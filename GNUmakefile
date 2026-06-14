@@ -34,18 +34,31 @@ iso: bin/os
 	curl -Ls https://github.com/limine-bootloader/limine/releases/latest/download/limine-binary.tar.gz | tar -xz -C bin
 	mkdir -p bin/iso_root/boot/limine bin/iso_root/EFI/BOOT
 	cp bin/os bin/iso_root/boot/
-	cp limine.conf bin/iso_root/boot/limine/
+	printf 'timeout: 0\n\n/myOS\n\tprotocol: limine\n\tpath: boot():/boot/os\n\tresolution: %dx%d\n' $(SCREEN_W) $(SCREEN_H) > bin/iso_root/boot/limine/limine.conf
+	cp bin/limine-binary/limine-bios-cd.bin bin/iso_root/boot/limine/
+	cp bin/limine-binary/limine-bios.sys    bin/iso_root/boot/limine/
 	cp bin/limine-binary/limine-uefi-cd.bin bin/iso_root/boot/limine/
-	cp bin/limine-binary/BOOTX64.EFI bin/iso_root/EFI/BOOT/
+	cp bin/limine-binary/BOOTX64.EFI        bin/iso_root/EFI/BOOT/
 	xorriso -as mkisofs -R -r -J \
+	  -b boot/limine/limine-bios-cd.bin \
+	  -no-emul-boot -boot-load-size 4 -boot-info-table \
 	  --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part \
 	  --efi-boot-image --protective-msdos-label \
 	  bin/iso_root -o bin/image.iso
 
+HOST_RES := $(shell system_profiler SPDisplaysDataType 2>/dev/null | grep Resolution | head -1 | awk '{print $$2,$$4}')
+SCREEN_W := $(word 1,$(HOST_RES))
+SCREEN_H := $(word 2,$(HOST_RES))
+ifeq ($(SCREEN_W),)
+SCREEN_W := 1280
+SCREEN_H := 720
+endif
+
 run: iso
 	qemu-system-x86_64 -cdrom bin/image.iso -m 128M \
 	  -serial $(SERIAL) \
-	  -drive if=pflash,format=raw,readonly=on,file=$(OVMF)
+	  -drive if=pflash,format=raw,readonly=on,file=$(OVMF) \
+	  -vga std
 
 clean:
 	rm -rf bin obj serial.log
