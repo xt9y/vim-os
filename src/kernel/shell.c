@@ -10,7 +10,7 @@
 static void cmd_help(struct terminal *term, int argc, char **argv)
 {
     (void)argc; (void)argv;
-    term_write(term, "builtins: help, clear, ps, write, cat, ls, rm\nvim-cmds: :q, :q!, :n");
+    term_write(term, "builtins: help, clear, ps, write, cat, ls, rm\nvim-cmds: :q, :q!, :n, :r");
 }
 
 static void cmd_clear(struct terminal *term, int argc, char **argv)

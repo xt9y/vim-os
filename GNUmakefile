@@ -20,7 +20,7 @@ SERIAL := stdio
 
 .PHONY: all iso run clean
 
-all: bin/os run
+all: bin/fs.img bin/os run
 
 bin/os: $(OBJ) linker.lds GNUmakefile
 	mkdir -p bin
@@ -32,9 +32,10 @@ obj/%.c.o: %.c GNUmakefile
 
 iso: bin/os
 	curl -Ls https://github.com/limine-bootloader/limine/releases/latest/download/limine-binary.tar.gz | tar -xz -C bin
+	$(MAKE) -C bin/limine-binary
 	mkdir -p bin/iso_root/boot/limine bin/iso_root/EFI/BOOT
 	cp bin/os bin/iso_root/boot/
-	printf 'timeout: 0\n\n/myOS\n\tprotocol: limine\n\tpath: boot():/boot/os\n\tresolution: %dx%d\n' $(SCREEN_W) $(SCREEN_H) > bin/iso_root/boot/limine/limine.conf
+	printf 'timeout: 5\n\n/myOS\n\tprotocol: limine\n\tpath: boot():/boot/os\n\tresolution: 1024x768\n' > bin/iso_root/boot/limine/limine.conf
 	cp bin/limine-binary/limine-bios-cd.bin bin/iso_root/boot/limine/
 	cp bin/limine-binary/limine-bios.sys    bin/iso_root/boot/limine/
 	cp bin/limine-binary/limine-uefi-cd.bin bin/iso_root/boot/limine/
@@ -45,6 +46,7 @@ iso: bin/os
 	  --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part \
 	  --efi-boot-image --protective-msdos-label \
 	  bin/iso_root -o bin/image.iso
+	bin/limine-binary/limine bios-install bin/image.iso 2>/dev/null; true
 
 HOST_RES := $(shell system_profiler SPDisplaysDataType 2>/dev/null | grep Resolution | head -1 | awk '{print $$2,$$4}')
 SCREEN_W := $(word 1,$(HOST_RES))
@@ -54,11 +56,17 @@ SCREEN_W := 1280
 SCREEN_H := 720
 endif
 
-run: iso
+bin/fs.img:
+	dd if=/dev/zero of=bin/fs.img bs=1M count=4 2>/dev/null
+
+run: bin/fs.img iso
 	qemu-system-x86_64 -cdrom bin/image.iso -m 128M \
 	  -serial $(SERIAL) \
 	  -drive if=pflash,format=raw,readonly=on,file=$(OVMF) \
-	  -vga std
+	  -drive file=bin/fs.img,format=raw,if=ide \
+	  -device virtio-vga,xres=1024,yres=760 \
+	  -display cocoa,zoom-to-fit=on -full-screen
 
 clean:
 	rm -rf bin obj serial.log
+	rm -f bin/fs.img

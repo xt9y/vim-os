@@ -7,6 +7,7 @@
 
 enum app_type {
     APP_NONE = 0,
+    APP_TEST,
     APP_TERMINAL,
 };
 
@@ -18,7 +19,7 @@ struct window {
 };
 
 void wm_init(uint32_t screen_w, uint32_t screen_h);
-int  wm_new(const char *title);
+int  wm_new(enum app_type type);
 void wm_close_focused(void);
 void wm_focus_next(void);
 void wm_focus_prev(void);

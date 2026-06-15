@@ -3,6 +3,8 @@
 #include "term.h"
 #include "string.h"
 #include "heap.h"
+#include "rtc.h"
+#include "pit.h"
 
 #define NODE_NULL (-1)
 #define GAP 1
@@ -35,6 +37,8 @@ static int root;
 static char cmdline[256];
 static int cmdline_len;
 static int cmdline_active;
+static char time_str[32];
+static int last_min = -1;
 
 void wm_set_cmdline(const char *text, int len, int active)
 {
@@ -87,17 +91,23 @@ void wm_init(uint32_t w, uint32_t h)
     }
 }
 
-int wm_new(const char *title)
+int wm_new(enum app_type type)
 {
     if (win_count >= WM_MAX) return -1;
 
     int slot = find_free_slot();
+    const char *str;
+    switch (type) {
+        case APP_TERMINAL: str = "TERMINAL"; break;
+        case APP_TEST:     str = "TEST"; break;
+        default:           str = "NONE";     break;
+    }
     int j;
-    for (j = 0; title[j] && j < 63; j++)
-        windows[slot].title[j] = title[j];
+    for (j = 0; str[j] && j < 63; j++)
+        windows[slot].title[j] = str[j];
     windows[slot].title[j] = '\0';
     windows[slot].bg = colors[win_count % WM_MAX];
-    windows[slot].app = APP_TERMINAL;
+    windows[slot].app = type;
     windows[slot].app_data = term_create(0, 0, 0, 0);
     window_used[slot] = 1;
     win_count++;
@@ -216,6 +226,12 @@ void wm_render(void)
 {
     if (win_count == 0 || root == NODE_NULL) return;
 
+    int now = (int)(pit_get_ticks() / 6000);
+    if (now != last_min) {
+        rtc_read_time(time_str, sizeof(time_str));
+        last_min = now;
+    }
+
     uint32_t usable_h = (screen_h > CMD_BAR_H) ? screen_h - CMD_BAR_H : 0;
 
     assign_rects(root, 0, 0, screen_w, usable_h);
@@ -241,11 +257,10 @@ void wm_render(void)
         int slot = nodes[i].slot;
         if (windows[slot].app == APP_TERMINAL && windows[slot].app_data) {
             struct terminal *t = windows[slot].app_data;
-            uint32_t rx = nodes[i].x + GAP + 2;
-            uint32_t ry = nodes[i].y + GAP + 2;
-            uint32_t rw = (nodes[i].w > 2 * GAP + 4) ? nodes[i].w - 2 * GAP - 4 : 0;
-            uint32_t rh = (nodes[i].h > 2 * GAP + 4) ? nodes[i].h - 2 * GAP - 4 : 0;
-            t->x = rx; t->y = ry; t->w = rw; t->h = rh;
+            t->x = nodes[i].x + GAP + 2; 
+            t->y = nodes[i].y + GAP + 2; 
+            t->w = (nodes[i].w > 2 * GAP + 4) ? nodes[i].w - 2 * GAP - 4 : 0; 
+            t->h = (nodes[i].h > 2 * GAP + 4) ? nodes[i].h - 2 * GAP - 4 : 0;
             term_render(t);
         }
     }
@@ -268,6 +283,8 @@ void wm_render(void)
         int cx = (cmdline_len < (int)(screen_w / 8)) ? cmdline_len * 8 : ((int)(screen_w / 8) - 1) * 8;
         gfx_rect(cx, bar_y, 1, CMD_BAR_H, 0x00EEEEEE);
     }
+    int time_w = strlen(time_str) * 8;
+    gfx_str(screen_w - time_w, bar_y, time_str, 0x00FFFFFF, 0x00111111);
 }
 
 int wm_count(void)

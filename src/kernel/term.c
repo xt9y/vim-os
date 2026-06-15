@@ -8,7 +8,7 @@ struct terminal *term_create(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
     struct terminal *t = malloc(sizeof(struct terminal));
     if (!t) return 0;
     t->x = x; t->y = y; t->w = w; t->h = h;
-    t->fg = 0x00EEEEEE;
+    t->fg = 0x00FFFFFF;
     t->bg = 0x00000000;
     t->line_count = 0;
     t->input_len = 0;

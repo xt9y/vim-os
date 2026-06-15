@@ -26,6 +26,18 @@ static volatile struct limine_hhdm_request hhdm_request = {
     .revision = 0
 };
 
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_rsdp_request rsdp_request = {
+    .id = LIMINE_RSDP_REQUEST,
+    .revision = 0
+};
+
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_efi_system_table_request efi_st_request = {
+    .id = LIMINE_EFI_SYSTEM_TABLE_REQUEST,
+    .revision = 0
+};
+
 __attribute__((used, section(".limine_requests_end")))
 static volatile LIMINE_REQUESTS_END_MARKER;
 
@@ -44,6 +56,9 @@ static char kernel_stack[16384] __attribute__((aligned(16)));
 #include "kernel/gfx.h"
 #include "kernel/wm.h"
 #include "kernel/fs.h"
+#include "kernel/config.h"
+#include "kernel/rtc.h"
+#include "kernel/acpi.h"
 #include "gdt.h"
 
 static struct limine_framebuffer *fb;
@@ -76,13 +91,22 @@ void entry(void)
     pmm_init(memmap_request.response, hhdm_request.response->offset);
     vmm_init(hhdm_request.response->offset);
     heap_init();
-    fs_init();
+    fs_init(); fs_load();
+    config_load();
     kb_init();
+    if (efi_st_request.response)
+        kb_set_conin(*(void **)((uint64_t)efi_st_request.response->address + 0x30));
+    rtc_init();
+    acpi_init(hhdm_request.response->offset);
+    if (rsdp_request.response)
+        acpi_set_rsdp((uint64_t)rsdp_request.response->address);
+    else
+        serial_printf("LOG: ACPI: RSDP not available\n");
 
     fb = fb_request.response->framebuffers[0];
     serial_printf("LOG: Framebuffer: %ux%u %u bpp\n", (unsigned)fb->width, (unsigned)fb->height, (unsigned)fb->bpp);
     gfx_init((void *)fb->address, fb->width, fb->height, fb->pitch);
-    wm_init(fb->width, fb->height); wm_new("window"); 
-    
+    wm_init(fb->width, fb->height); wm_new(APP_TERMINAL); 
+
     cmd_loop();
 }
