@@ -6,7 +6,6 @@ static struct {
     uint32_t width;
     uint32_t height;
     uint32_t pitch;
-    uint32_t bpp;
 } gfx;
 
 void gfx_init(void *fb, uint32_t w, uint32_t h, uint32_t pitch) 
@@ -15,7 +14,6 @@ void gfx_init(void *fb, uint32_t w, uint32_t h, uint32_t pitch)
     gfx.width  = w;
     gfx.height = h;
     gfx.pitch  = pitch;
-    gfx.bpp    = 4;
 }
 
 void gfx_clear(uint32_t color) 

@@ -1,6 +1,7 @@
 #include "heap.h"
 #include "vmm.h"
 #include "pmm.h"
+#include "io.h"
 #include "serial.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -68,7 +69,7 @@ void *malloc(size_t size)
         if (cur->magic != MAGIC) {
             serial_printf("ERROR: heap: corruption at %p magic=0x%x\n",
                           cur, (unsigned)cur->magic);
-            for (;;) __asm__("hlt");
+            hang;
         }
         if (cur->size >= need) {
             if (cur->size >= need + MIN_BLOCK) {
@@ -100,11 +101,11 @@ void free(void *ptr)
     if (b->magic != MAGIC) {
         serial_printf("ERROR: heap: invalid free %p magic=0x%x\n",
                       ptr, (unsigned)b->magic);
-        for (;;) __asm__("hlt");
+        hang;
     }
     if (b->free) {
         serial_printf("ERROR: heap: double free %p\n", ptr);
-        for (;;) __asm__("hlt");
+        hang;
     }
 
     b->free = 1;
@@ -157,7 +158,7 @@ void *realloc(void *ptr, size_t size)
     struct block *b = (struct block *)((char *)ptr - HEADER_SZ);
     if (b->magic != MAGIC) {
         serial_printf("ERROR: heap: invalid realloc %p\n", ptr);
-        for (;;) __asm__("hlt");
+        hang;
     }
 
     size_t old = b->size - HEADER_SZ;

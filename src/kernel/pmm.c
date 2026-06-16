@@ -1,4 +1,5 @@
 #include "pmm.h"
+#include "io.h"
 #include "serial.h"
 #include <limine.h>
 #include <stdint.h>
@@ -53,7 +54,7 @@ void pmm_init(void *memmap_response, uint64_t hhdm_offset)
 
     if (!bitmap_phys) {
         serial_printf("ERROR: PMM: no region fits bitmap (%u bytes)\n", (unsigned)bitmap_size);
-        for (;;) __asm__("hlt");
+        hang;
     }
 
     bitmap = (uint8_t *)(bitmap_phys + hhdm);

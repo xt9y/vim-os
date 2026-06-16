@@ -1,5 +1,4 @@
-#ifndef TERM_H
-#define TERM_H
+#pragma once
 
 #include <stdint.h>
 #include <stddef.h>
@@ -27,5 +26,3 @@ void term_write(struct terminal *t, const char *s);
 void term_putchar(struct terminal *t, char c);
 void term_clear(struct terminal *t);
 void term_render(struct terminal *t);
-
-#endif

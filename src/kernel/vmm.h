@@ -1,5 +1,4 @@
-#ifndef VMM_H
-#define VMM_H
+#pragma once
 
 #include <stdint.h>
 
@@ -12,5 +11,3 @@ void vmm_init(uint64_t hhdm_offset);
 void vmm_map_page(uint64_t virt, uint64_t phys, uint64_t flags);
 void vmm_unmap_page(uint64_t virt);
 uint64_t vmm_get_phys(uint64_t virt);
-
-#endif

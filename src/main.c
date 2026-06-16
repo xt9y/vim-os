@@ -43,9 +43,8 @@ static volatile LIMINE_REQUESTS_END_MARKER;
 
 static char kernel_stack[16384] __attribute__((aligned(16)));
 
-#define hang for (;;) __asm__("hlt")
-
 #include "kernel/serial.h"
+#include "kernel/io.h"
 #include "kernel/idt.h"
 #include "kernel/pit.h"
 #include "kernel/pmm.h"

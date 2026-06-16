@@ -1,5 +1,4 @@
-#ifndef IO_H
-#define IO_H
+#pragma once
 
 #include <stdint.h>
 
@@ -49,4 +48,5 @@ static inline void outl(uint16_t port, uint32_t val)
     __asm__ volatile("outl %0, %1" : : "a"(val), "Nd"(port));
 }
 
-#endif
+#define hang for (;;) __asm__("hlt")
+

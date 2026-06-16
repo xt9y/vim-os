@@ -1,5 +1,6 @@
 #include "vmm.h"
 #include "pmm.h"
+#include "io.h"
 #include "serial.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -35,7 +36,7 @@ static uint64_t ensure_table(uint64_t *parent, unsigned index, uint64_t flags)
     uint64_t phys = pmm_alloc();
     if (!phys) {
         serial_printf("ERROR: VMM: pmm_alloc failed\n");
-        for (;;) __asm__("hlt");
+        hang;
     }
     uint64_t *virt = table_at(phys);
     for (int i = 0; i < PT_ENTRIES; i++)

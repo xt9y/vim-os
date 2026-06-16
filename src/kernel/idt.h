@@ -1,5 +1,4 @@
-#ifndef IDT_H
-#define IDT_H
+#pragma once
 
 #include <stdint.h>
 
@@ -13,5 +12,3 @@ struct interrupt_frame {
 
 void idt_init(void);
 void pic_eoi(int irq);
-
-#endif

@@ -1,8 +1,5 @@
 /* VGA 8×16 bitmap font — ASCII 0x20–0x7E (95 glyphs + 161 filler = 256 total) */
-#ifndef FONT8X16_H
-#define FONT8X16_H
-
-#include <stdint.h>
+#pragma once
 
 static uint8_t font8x16[256][16] = {
 	/* 0x00 */ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -262,5 +259,3 @@ static uint8_t font8x16[256][16] = {
 	/* 0xFE */ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 	/* 0xFF */ {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 };
-
-#endif /* FONT8X16_H */

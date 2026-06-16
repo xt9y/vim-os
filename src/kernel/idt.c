@@ -3,9 +3,6 @@
 #include "serial.h"
 #include <stdint.h>
 
-#define hang for (;;) __asm__("hlt")
-
-// --- IDT entry (16 bytes per entry) ---
 struct idt_entry {
     uint16_t offset_low;
     uint16_t selector;
@@ -42,13 +39,13 @@ static void set_idt_entry(int vector, void *handler, uint8_t type)
 #define PIC2_DATA 0xA1
 #define PIC_EOI   0x20
 
-void pic_eoi(int irq) 
+void pic_eoi(int irq)
 {
     if (irq >= 8) outb(PIC2_CMD, PIC_EOI);
     outb(PIC1_CMD, PIC_EOI);
 }
 
-static void pic_remap(void) 
+static void pic_remap(void)
 {
     outb(PIC1_CMD, 0x11);
     outb(PIC2_CMD, 0x11);
@@ -74,40 +71,136 @@ static const char *exc_name[] = {
 #define EXC(n) __attribute__((interrupt)) void exc_##n(struct interrupt_frame *f)
 #define EXC_ERR(n) __attribute__((interrupt)) void exc_##n(struct interrupt_frame *f, uint64_t err)
 
-EXC(0)  { serial_printf("\n!!! EXC %d: %s", 0, exc_name[0]); hang; }
-EXC(1)  { serial_printf("\n!!! EXC %d: %s", 1, exc_name[1]); hang; }
-EXC(2)  { serial_printf("\n!!! EXC %d: %s", 2, exc_name[2]); hang; }
-EXC(3)  { serial_printf("\n!!! EXC %d: %s", 3, exc_name[3]); hang; }
-EXC(4)  { serial_printf("\n!!! EXC %d: %s", 4, exc_name[4]); hang; }
-EXC(5)  { serial_printf("\n!!! EXC %d: %s", 5, exc_name[5]); hang; }
-EXC(6)  { serial_printf("\n!!! EXC %d: %s", 6, exc_name[6]); hang; }
-EXC(7)  { serial_printf("\n!!! EXC %d: %s", 7, exc_name[7]); hang; }
-EXC_ERR(8)  { serial_printf("\n!!! EXC %d: %s err=0x%x", 8, exc_name[8], (unsigned)err); hang; }
-EXC(9)  { serial_printf("\n!!! EXC %d: %s", 9, exc_name[9]); hang; }
-EXC_ERR(10) { serial_printf("\n!!! EXC %d: %s err=0x%x",10, exc_name[10], (unsigned)err); hang; }
-EXC_ERR(11) { serial_printf("\n!!! EXC %d: %s err=0x%x",11, exc_name[11], (unsigned)err); hang; }
-EXC_ERR(12) { serial_printf("\n!!! EXC %d: %s err=0x%x",12, exc_name[12], (unsigned)err); hang; }
-EXC_ERR(13) { serial_printf("\n!!! EXC %d: %s err=0x%x",13, exc_name[13], (unsigned)err); hang; }
-EXC_ERR(14) { serial_printf("\n!!! EXC %d: %s err=0x%x",14, exc_name[14], (unsigned)err); hang; }
-EXC(15) { serial_printf("\n!!! EXC %d: %s",15, exc_name[15]); hang; }
-EXC(16) { serial_printf("\n!!! EXC %d: %s",16, exc_name[16]); hang; }
-EXC_ERR(17) { serial_printf("\n!!! EXC %d: %s err=0x%x",17, exc_name[17], (unsigned)err); hang; }
-EXC(18) { serial_printf("\n!!! EXC %d: %s",18, exc_name[18]); hang; }
-EXC(19) { serial_printf("\n!!! EXC %d: %s",19, exc_name[19]); hang; }
-EXC(20) { serial_printf("\n!!! EXC %d: %s",20, exc_name[20]); hang; }
-EXC(21) { serial_printf("\n!!! EXC %d: %s",21, exc_name[21]); hang; }
-EXC(22) { serial_printf("\n!!! EXC %d: %s",22, exc_name[22]); hang; }
-EXC(23) { serial_printf("\n!!! EXC %d: %s",23, exc_name[23]); hang; }
-EXC(24) { serial_printf("\n!!! EXC %d: %s",24, exc_name[24]); hang; }
-EXC(25) { serial_printf("\n!!! EXC %d: %s",25, exc_name[25]); hang; }
-EXC(26) { serial_printf("\n!!! EXC %d: %s",26, exc_name[26]); hang; }
-EXC(27) { serial_printf("\n!!! EXC %d: %s",27, exc_name[27]); hang; }
-EXC(28) { serial_printf("\n!!! EXC %d: %s",28, exc_name[28]); hang; }
-EXC(29) { serial_printf("\n!!! EXC %d: %s",29, exc_name[29]); hang; }
-EXC(30) { serial_printf("\n!!! EXC %d: %s",30, exc_name[30]); hang; }
-EXC(31) { serial_printf("\n!!! EXC %d: %s",31, exc_name[31]); hang; }
+EXC(0)
+{
+    serial_printf("\n!!! EXC %d: %s", 0, exc_name[0]); hang;
+}
+EXC(1)
+{
+    serial_printf("\n!!! EXC %d: %s", 1, exc_name[1]); hang;
+}
+EXC(2)
+{
+    serial_printf("\n!!! EXC %d: %s", 2, exc_name[2]); hang;
+}
+EXC(3)
+{
+    serial_printf("\n!!! EXC %d: %s", 3, exc_name[3]); hang;
+}
+EXC(4)
+{
+    serial_printf("\n!!! EXC %d: %s", 4, exc_name[4]); hang;
+}
+EXC(5)
+{
+    serial_printf("\n!!! EXC %d: %s", 5, exc_name[5]); hang;
+}
+EXC(6)
+{
+    serial_printf("\n!!! EXC %d: %s", 6, exc_name[6]); hang;
+}
+EXC(7)
+{
+    serial_printf("\n!!! EXC %d: %s", 7, exc_name[7]); hang;
+}
+EXC_ERR(8)
+{
+    serial_printf("\n!!! EXC %d: %s err=0x%x", 8, exc_name[8], (unsigned)err); hang;
+}
+EXC(9)
+{
+    serial_printf("\n!!! EXC %d: %s", 9, exc_name[9]); hang;
+}
+EXC_ERR(10)
+{
+    serial_printf("\n!!! EXC %d: %s err=0x%x",10, exc_name[10], (unsigned)err); hang;
+}
+EXC_ERR(11)
+{
+    serial_printf("\n!!! EXC %d: %s err=0x%x",11, exc_name[11], (unsigned)err); hang;
+}
+EXC_ERR(12)
+{
+    serial_printf("\n!!! EXC %d: %s err=0x%x",12, exc_name[12], (unsigned)err); hang;
+}
+EXC_ERR(13)
+{
+    serial_printf("\n!!! EXC %d: %s err=0x%x",13, exc_name[13], (unsigned)err); hang;
+}
+EXC_ERR(14)
+{
+    serial_printf("\n!!! EXC %d: %s err=0x%x",14, exc_name[14], (unsigned)err); hang;
+}
+EXC(15)
+{
+    serial_printf("\n!!! EXC %d: %s",15, exc_name[15]); hang;
+}
+EXC(16)
+{
+    serial_printf("\n!!! EXC %d: %s",16, exc_name[16]); hang;
+}
+EXC_ERR(17)
+{
+    serial_printf("\n!!! EXC %d: %s err=0x%x",17, exc_name[17], (unsigned)err); hang;
+}
+EXC(18)
+{
+    serial_printf("\n!!! EXC %d: %s",18, exc_name[18]); hang;
+}
+EXC(19)
+{
+    serial_printf("\n!!! EXC %d: %s",19, exc_name[19]); hang;
+}
+EXC(20)
+{
+    serial_printf("\n!!! EXC %d: %s",20, exc_name[20]); hang;
+}
+EXC(21)
+{
+    serial_printf("\n!!! EXC %d: %s",21, exc_name[21]); hang;
+}
+EXC(22)
+{
+    serial_printf("\n!!! EXC %d: %s",22, exc_name[22]); hang;
+}
+EXC(23)
+{
+    serial_printf("\n!!! EXC %d: %s",23, exc_name[23]); hang;
+}
+EXC(24)
+{
+    serial_printf("\n!!! EXC %d: %s",24, exc_name[24]); hang;
+}
+EXC(25)
+{
+    serial_printf("\n!!! EXC %d: %s",25, exc_name[25]); hang;
+}
+EXC(26)
+{
+    serial_printf("\n!!! EXC %d: %s",26, exc_name[26]); hang;
+}
+EXC(27)
+{
+    serial_printf("\n!!! EXC %d: %s",27, exc_name[27]); hang;
+}
+EXC(28)
+{
+    serial_printf("\n!!! EXC %d: %s",28, exc_name[28]); hang;
+}
+EXC(29)
+{
+    serial_printf("\n!!! EXC %d: %s",29, exc_name[29]); hang;
+}
+EXC(30)
+{
+    serial_printf("\n!!! EXC %d: %s",30, exc_name[30]); hang;
+}
+EXC(31)
+{
+    serial_printf("\n!!! EXC %d: %s",31, exc_name[31]); hang;
+}
 
-// --- IRQ stubs (forward declarations — implemented in pit.c, keyboard later) ---
+// IRQ stubs (defined in pit.c, kb.c)
 __attribute__((interrupt)) void irq_timer(struct interrupt_frame *f);
 __attribute__((interrupt)) void irq_keyboard(struct interrupt_frame *f);
 __attribute__((interrupt)) void irq_slave(struct interrupt_frame *f);

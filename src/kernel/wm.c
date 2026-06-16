@@ -151,7 +151,8 @@ void wm_close_focused(void)
 {
     if (win_count == 0) return;
 
-    if (windows[focused_slot].app == APP_TERMINAL && windows[focused_slot].app_data) {
+    if (windows[focused_slot].app == APP_TERMINAL && windows[focused_slot].app_data)
+    {
         term_destroy(windows[focused_slot].app_data);
         windows[focused_slot].app_data = 0;
     }
@@ -159,16 +160,22 @@ void wm_close_focused(void)
     int leaf = window_leaf[focused_slot];
     int p = nodes[leaf].parent;
 
-    if (p == NODE_NULL) {
+    if (p == NODE_NULL)
+    {
         free_node(leaf);
         root = NODE_NULL;
-    } else {
+    }
+    else
+    {
         int sibling = (nodes[p].left == leaf) ? nodes[p].right : nodes[p].left;
         int gp = nodes[p].parent;
         nodes[sibling].parent = gp;
-        if (gp == NODE_NULL) {
+        if (gp == NODE_NULL)
+        {
             root = sibling;
-        } else {
+        }
+        else
+        {
             if (nodes[gp].left == p)  nodes[gp].left  = sibling;
             else                      nodes[gp].right = sibling;
         }

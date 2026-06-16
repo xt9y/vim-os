@@ -1,5 +1,4 @@
-#ifndef FS_H
-#define FS_H
+#pragma once
 
 #include <stdint.h>
 #include <stddef.h>
@@ -16,5 +15,3 @@ int fs_read(const char *name, void *buf, uint32_t *size);
 int fs_list(char *out, size_t out_size);
 int fs_save(void);
 int fs_load(void);
-
-#endif

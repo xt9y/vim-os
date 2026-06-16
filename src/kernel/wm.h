@@ -1,5 +1,4 @@
-#ifndef WM_H
-#define WM_H
+#pragma once
 
 #include <stdint.h>
 
@@ -31,5 +30,3 @@ enum app_type wm_get_app_type(int slot);
 int wm_slot_used(int slot);
 const char *wm_window_title(int slot);
 void wm_set_cmdline(const char *text, int len, int active);
-
-#endif

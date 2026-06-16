@@ -1,5 +1,4 @@
-#ifndef KB_H
-#define KB_H
+#pragma once
 
 #include <stdint.h>
 
@@ -10,5 +9,3 @@ void kb_init(void);
 void kb_reload_layout(void);
 int kb_getc(void);
 void kb_set_conin(void *conin);
-
-#endif

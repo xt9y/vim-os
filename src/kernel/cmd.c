@@ -52,7 +52,6 @@ void cmd_loop(void)
                     fs_save();
                     outb(0x64, 0xFE);
                     __asm__ volatile("cli; hlt");
-                    for (;;);
                 } 
 
                 else if (strncmp(cmd, "set ", 4) == 0) {
@@ -66,7 +65,7 @@ void cmd_loop(void)
 
                     for (i = 0; *p && i < 63; i++, p++) val[i] = *p;
 
-                    if (*key && *val) 
+                    if (*key && *val)
                     {
                         char buf[2048], out[2048];
                         uint32_t size = sizeof(buf) - 1;
@@ -76,7 +75,7 @@ void cmd_loop(void)
                             char *in = buf;
                             char *o = out;
                             int found = 0;
-                            while (*in) 
+                            while (*in)
                             {
                                 char *nl = strchr(in, '\n');
                                 int len = nl ? (int)(nl - in) : (int)strlen(in);

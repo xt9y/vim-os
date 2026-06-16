@@ -1,6 +1,6 @@
 #include "acpi.h"
-#include "serial.h"
 #include "io.h"
+#include "serial.h"
 
 struct __attribute__((packed)) rsdp {
     char sig[8];
@@ -175,6 +175,5 @@ void acpi_poweroff(void)
 
     outw(0x604, 0x2000);
     outw(0xB004, 0x2000);
-    __asm__ volatile("cli; hlt");
-    for (;;);
+    hang;
 }

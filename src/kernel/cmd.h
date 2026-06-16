@@ -1,6 +1,3 @@
-#ifndef CMD_H
-#define CMD_H
+#pragma once
 
 void cmd_loop(void);
-
-#endif
